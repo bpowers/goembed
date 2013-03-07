@@ -27,7 +27,7 @@ func exportPin(pin int) error {
 		return nil
 	}
 
-	f, err := os.Create("/sys/class/gpio/export")
+	f, err := os.OpenFile("/sys/class/gpio/export", os.O_WRONLY, 0)
 	if err != nil {
 		return fmt.Errorf("os.Create(/sys/class/gpio/export): %s", err)
 	}
@@ -43,7 +43,7 @@ func openRPiGPIO(pin int, dir platform.GPIODir) (platform.GPIO, error) {
 		return nil, fmt.Errorf("exportPin(%d): %s", pin, err)
 	}
 
-	dirF, err := os.Create(pinPath(pin, "direction"))
+	dirF, err := os.OpenFile(pinPath(pin, "direction"), os.O_WRONLY, 0)
 	if err != nil {
 		return nil, fmt.Errorf("os.Create(%s): %s",
 			pinPath(pin, "direction"), err)
@@ -54,7 +54,15 @@ func openRPiGPIO(pin int, dir platform.GPIODir) (platform.GPIO, error) {
 		return nil, fmt.Errorf("dirF.WriteString(%s): %s",dir.String(), err)
 	}
 
-	valF, err := os.Create(pinPath(pin, "value"))
+	var mask int
+	if dir == platform.GPInput || dir == platform.GPBidi {
+		mask |= os.O_RDONLY
+	}
+	if dir == platform.GPOutput || dir == platform.GPBidi {
+		mask |= os.O_WRONLY
+	}
+
+	valF, err := os.OpenFile(pinPath(pin, "value"), mask, 0)
 	if err != nil {
 		return nil, fmt.Errorf("os.Create(%s): %s", pinPath(pin, "value"), err)
 	}
