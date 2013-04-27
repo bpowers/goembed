@@ -14,8 +14,8 @@ type max31855 struct {
 	f *os.File
 }
 
-func Max31855(path string) (Thermocouple, error) {
-	f, err := os.OpenFile(path, os.O_RDWR, 0)
+func Max31855(path spi.SPIPath) (Thermocouple, error) {
+	f, err := os.OpenFile(string(path), os.O_RDWR, 0)
 	if err != nil {
 		return nil, fmt.Errorf("os.OpenFile('%s', os.O_RDWR, 0)", path)
 	}
@@ -31,7 +31,7 @@ func (m *max31855) Read() (Celsius, error) {
 	}
 
 	// the high 14 bits of the result contain 4x the Celsius temp
-	return Celsius(m.Precision() * float64(buf[0]<<6|buf[1]>>2)), nil
+	return Celsius(m.Precision() * Celsius(buf[0]<<6|buf[1]>>2)), nil
 }
 
 func (m *max31855) Precision() Celsius {
