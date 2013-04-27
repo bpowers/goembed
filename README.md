@@ -5,7 +5,8 @@ The Raspberry Pi (RPi) is a great little linux board with readily
 available GPIO, SPI, i2c and UART connectivity.  This is a library
 designed to make controlling things using Go on a RPi easy and fun!
 
-Reading a K-type thermocouple looks like this:
+Reading a K-type thermocouple using a
+[MAX31855](http://www.adafruit.com/products/269) looks like this:
 
 ```Go
 package main
