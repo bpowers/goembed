@@ -71,3 +71,7 @@ func (s *rpiSPIPair) Transaction(write, read []byte) error {
 	}
 	return nil
 }
+
+func init() {
+	platform.NewSPIPair = newSPIPair
+}

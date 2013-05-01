@@ -5,8 +5,8 @@
 package platform
 
 // SPIPair represents the connection between an SPI bus master and a
-// particular slave.  Different slaves connected to the same SPI
-// master will have unique SPIPairs.
+// specific slave.  Different slaves connected to the same SPI master
+// have distinct SPIPairs.
 type SPIPair interface {
 	Transaction(write, read []byte) error
 	Close() error
@@ -26,9 +26,11 @@ const (
 	GPBidi GPIODir = iota
 )
 
+// GPIO represents an individual pin opened for either input or output
 type GPIO interface {
 	Read() (byte, error) // only the lowest bit (0x01) will possibly be set
 	Write(b byte) error // the input, b, will be bitwise-and'ed with 0x01
+	Dir() GPIODir
 	Close() error
 }
 
