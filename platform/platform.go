@@ -20,6 +20,18 @@ var NewSPIPair func(bus, slave int) (SPIPair, error)
 
 type GPIODir int // the direction (input or output) of the IO pin
 
+func (d GPIODir) String() string {
+	switch d {
+	case GPInput:
+		return "in"
+	case GPOutput:
+		return "out"
+	case GPBidi:
+		return "bidi"
+	}
+	panic("unknown GPIODir")
+}
+
 const (
 	GPInput GPIODir = iota
 	GPOutput GPIODir = iota

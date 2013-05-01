@@ -8,23 +8,72 @@ import (
 	"fmt"
 	"github.com/bpowers/goembed/platform"
 	"os"
+	"strconv"
 )
 
 type rpiGPIO struct {
-	dir platform.GPIODir
 	f *os.File
+	pin int
+	dir platform.GPIODir
+}
+
+func pinPath(pin int, file string) string {
+	return fmt.Sprintf("/sys/class/gpio/gpio%d/%s", pin, file)
+}
+
+func exportPin(pin int) error {
+	// if the pin already exists, our job is already done.
+	if _, err := os.Stat(pinPath(pin, "")); err == nil {
+		return nil
+	}
+
+	f, err := os.Create("/sys/class/gpio/export")
+	if err != nil {
+		return fmt.Errorf("os.Create(/sys/class/gpio/export): %s", err)
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(strconv.Itoa(pin))
+	return err
 }
 
 func openRPiGPIO(pin int, dir platform.GPIODir) (platform.GPIO, error) {
-	return nil, fmt.Errorf("ni")
+	var err error
+	if err = exportPin(pin); err != nil {
+		return nil, fmt.Errorf("exportPin(%d): %s", pin, err)
+	}
+
+	dirF, err := os.Create(pinPath(pin, "direction"))
+	if err != nil {
+		return nil, fmt.Errorf("os.Create(%s): %s",
+			pinPath(pin, "direction"), err)
+	}
+	defer dirF.Close()
+
+	if _, err = dirF.WriteString(dir.String());  err != nil {
+		return nil, fmt.Errorf("dirF.WriteString(%s): %s",dir.String(), err)
+	}
+
+	valF, err := os.Create(pinPath(pin, "value"))
+	if err != nil {
+		return nil, fmt.Errorf("os.Create(%s): %s", pinPath(pin, "value"), err)
+	}
+
+	return &rpiGPIO{valF, pin, dir}, nil
 }
 
 func (r *rpiGPIO) Read() (byte, error) {
-	return 0, fmt.Errorf("not implemented")
+	buf := []byte{0}
+	_, err := r.f.Read(buf)
+	// FIXME: make this more robust
+	return (buf[0]-'0')&0x01, err
 }
 
 func (r *rpiGPIO) Write(b byte) error {
-	return fmt.Errorf("not implemented")
+	buf := []byte{0}
+	buf[0] = '0' + (b&0x01)
+	_, err := r.f.Write(buf)
+	return err
 }
 
 func (r *rpiGPIO) Dir() platform.GPIODir {
