@@ -18,8 +18,6 @@ import (
 	"log"
 )
 
-const LEDPin = 22
-
 func main() {
 	maxSPI, err := platform.NewSPIPair(0, 0)
 	if err != nil {
@@ -34,17 +32,37 @@ func main() {
 
 	temp, err := tc1.Read()
 	log.Printf("on startup, temp is %v (err: %v)", temp, err)
+}
+```
 
+and blinking an LED once a second looks like this:
+
+```Go
+package main
+
+import (
+	_ "github.com/bpowers/goembed/arch/raspberrypi"
+	"github.com/bpowers/goembed/device"
+	"github.com/bpowers/goembed/platform"
+	"log"
+)
+
+const LEDPin = 22
+
+func main() {
 	pin, err := platform.OpenGPIO(LEDPin, platform.GPOutput)
 	if err != nil {
 		log.Fatalf("platform.OpenGPIO(LEDPin, platform.GPOutput): %s", err)
 	}
 	defer pin.Close()
 
-	// turn on our LED
-	pin.Write(1)
-
-	// ...
+	desired = 0
+	timer := time.Tick(500 * time.Millisecond)
+	for {
+		<-timer
+		desired = (desired+1)%2
+		pin.Write(desired)
+	}
 }
 ```
 
@@ -57,12 +75,13 @@ kernel.  I would hope that it Just Works on other Linux distros with a
 similar kernel, but if you run into issues I am happy to look into
 them.
 
-Similarly, I've tried to keep Linux-specific functionality in
-*_linux.go files, I would hope that this code would be easy to port to
-BSD, but I don't have plans to do that personally in the near future
-unless there is a lot of demand.  Patches welcome ;)
+The idea is that other systems (like the BeagleBoard) could implement
+GPIO, SPI, and friends and live in `arch/beagleboard`, etc.  Switching
+deployment targets would simply require updating some consts that
+represent which functionality is on which IO pins, and changing the
+import at the top of `main.go`.
 
 license
 -------
 
-gorpi is offered under the MIT license, see LICENSE for details.
+goembed is offered under the MIT license, see LICENSE for details.
