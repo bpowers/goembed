@@ -15,8 +15,8 @@ type SPIPair interface {
 // NewSPIPair is the platform-specific SPIPair creation function, it
 // is installed by importing a specific arch in main, like:
 //
-//    import _ "github.com/bpowers/goembed/arch/raspberry-pi"
-var NewSPIPair func(bus, device int) (SPIPair, error)
+//     import _ "github.com/bpowers/goembed/arch/raspberry-pi"
+var NewSPIPair func(bus, slave int) (SPIPair, error)
 
 type GPIODir int // the direction (input or output) of the IO pin
 

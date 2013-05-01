@@ -2,10 +2,11 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-package spi
+package raspberrypi
 
 import (
 	"fmt"
+	"github.com/bpowers/goembed/platform"
 	"os"
 	"unsafe"
 )
@@ -14,10 +15,17 @@ const (
 	_SPI_IOC_MAGIC = 'k'
 )
 
-type SPIPath string
+type rpiSPIPair struct {
+	*os.File
+}
 
-func Path(bus, dev int) SPIPath {
-	return SPIPath(fmt.Sprintf("/dev/spidev%d.%d", bus, dev))
+func newSPIPair(bus, slave int) (platform.SPIPair, error) {
+	devPath := fmt.Sprintf("/dev/spidev%d.%d", bus, slave)
+	f, err := os.Create(devPath)
+	if err != nil {
+		return nil, fmt.Errorf("os.OpenFile('%s', os.O_RDWR, 0)", devPath)
+	}
+	return &rpiSPIPair{f}, nil
 }
 
 type _SPIIOTransaction struct {
@@ -37,12 +45,10 @@ func _SPI_IOC_MESSAGE(count int) int32 {
 	return _IOW(_SPI_IOC_MAGIC, 0, count*sizeof_SPIIOTransaction)
 }
 
-func Transaction(f *os.File, write, read []byte) error {
-	if write != nil && read != nil {
-		if len(write) != len(read) {
-			return fmt.Errorf("write and read size mismatch (%d vs %d)",
-				len(write), len(read))
-		}
+func (s *rpiSPIPair) Transaction(write, read []byte) error {
+	if write != nil && read != nil && len(write) != len(read) {
+		return fmt.Errorf("write and read size mismatch (%d vs %d)",
+			len(write), len(read))
 	}
 	var length uint32
 	var wp, rp unsafe.Pointer
@@ -59,7 +65,7 @@ func Transaction(f *os.File, write, read []byte) error {
 		RXBuf: uint64(uintptr(rp)),
 		Len:   length,
 	}
-	result := ioctl(f.Fd(), _SPI_IOC_MESSAGE(1), unsafe.Pointer(&trx))
+	result := ioctl(s.Fd(), _SPI_IOC_MESSAGE(1), unsafe.Pointer(&trx))
 	if result != 0 {
 		return fmt.Errorf("ioctl result of %d", result)
 	}

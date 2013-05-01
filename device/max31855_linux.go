@@ -6,8 +6,7 @@ package device
 
 import (
 	"fmt"
-	"github.com/bpowers/gorpi/spi"
-	"os"
+	"github.com/bpowers/goembed/platform"
 )
 
 type max31855Error string
@@ -23,7 +22,7 @@ const (
 )
 
 type max31855 struct {
-	f *os.File
+	spi platform.SPIPair
 }
 
 type max31855Reply struct {
@@ -35,12 +34,8 @@ type max31855Reply struct {
 	OC     bool // open (no connections) (fault)
 }
 
-func Max31855(path spi.SPIPath) (Thermocouple, error) {
-	f, err := os.OpenFile(string(path), os.O_RDWR, 0)
-	if err != nil {
-		return nil, fmt.Errorf("os.OpenFile('%s', os.O_RDWR, 0)", path)
-	}
-	return &max31855{f}, nil
+func Max31855(spi platform.SPIPair) (Thermocouple, error) {
+	return &max31855{spi}, nil
 }
 
 func (m *max31855) read() (max31855Reply, error) {
@@ -48,8 +43,8 @@ func (m *max31855) read() (max31855Reply, error) {
 	buf := make([]byte, 4)
 	var reply max31855Reply
 
-	if err := spi.Transaction(m.f, nil, buf); err != nil {
-		return reply, fmt.Errorf("spi.Transaction(%v, nil, buf): %s", m.f, err)
+	if err := m.spi.Transaction(nil, buf); err != nil {
+		return reply, fmt.Errorf("spi.Transaction(): %s", err)
 	}
 
 	// FIXME: take care of two's compliment.
@@ -87,5 +82,5 @@ func (m *max31855) Precision() Celsius {
 }
 
 func (m *max31855) Close() error {
-	return m.f.Close()
+	return m.spi.Close()
 }
