@@ -52,6 +52,7 @@ func (m *max31855) read() (max31855Reply, error) {
 		return reply, fmt.Errorf("spi.Transaction(%v, nil, buf): %s", m.f, err)
 	}
 
+	// FIXME: take care of two's compliment.
 	reply.TCData = int16(buf[0]<<6|buf[1]>>2)
 	reply.RJData = int16(buf[2]<<4|buf[3]>>4)
 	reply.Fault = (buf[1]>>7) == 1
