@@ -5,13 +5,17 @@
 package device
 
 import (
-	"io"
+	"fmt"
 )
 
 type Celsius float64
 
+func (c Celsius) String() string {
+	return fmt.Sprintf("%.2f°C", float64(c))
+}
+
 type Thermocouple interface {
 	Read() (Celsius, error)
 	Precision() Celsius
-	io.Closer
+	Close() error
 }
