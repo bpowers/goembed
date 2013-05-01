@@ -1,5 +1,5 @@
-gorpi - Go library for Raspberry Pi embedded dev
-================================================
+goembed - Go library for embedded development (like the Raspberry Pi)
+=====================================================================
 
 The Raspberry Pi (RPi) is a great little linux board with readily
 available GPIO, SPI, i2c and UART connectivity.  This is a library
