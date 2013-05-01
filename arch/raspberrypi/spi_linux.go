@@ -23,7 +23,7 @@ func newSPIPair(bus, slave int) (platform.SPIPair, error) {
 	devPath := fmt.Sprintf("/dev/spidev%d.%d", bus, slave)
 	f, err := os.Create(devPath)
 	if err != nil {
-		return nil, fmt.Errorf("os.OpenFile('%s', os.O_RDWR, 0)", devPath)
+		return nil, fmt.Errorf("os.OpenFile('%s', os.O_RDWR, 0): %s", devPath, err)
 	}
 	return &rpiSPIPair{f}, nil
 }
