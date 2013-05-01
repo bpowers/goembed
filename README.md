@@ -12,23 +12,39 @@ Reading a K-type thermocouple using a
 package main
 
 import (
-	"github.com/bpowers/gorpi/device"
-	"github.com/bpowers/gorpi/spi"
+	_ "github.com/bpowers/goembed/arch/raspberrypi"
+	"github.com/bpowers/goembed/device"
+	"github.com/bpowers/goembed/platform"
 	"log"
 )
 
+const LEDPin = 22
+
 func main() {
-	tc1, err := device.Max31855(spi.Path(0, 0))
+	maxSPI, err := platform.NewSPIPair(0, 0)
 	if err != nil {
-		log.Fatalf("devicesMax31855(spi.Path(0, 0)): %s\n", err)
+		log.Fatalf("platform.NewSPIPair(0, 0): %s\n", err)
+	}
+
+	tc1, err := device.Max31855(maxSPI)
+	if err != nil {
+		log.Fatalf("devices.NewMax31855(): %s", err)
 	}
 	defer tc1.Close()
 
 	temp, err := tc1.Read()
+	log.Printf("on startup, temp is %v (err: %v)", temp, err)
+
+	pin, err := platform.OpenGPIO(LEDPin, platform.GPOutput)
 	if err != nil {
-		log.Fatalf("tc1.Read(): %s\n", err)
+		log.Fatalf("platform.OpenGPIO(LEDPin, platform.GPOutput): %s", err)
 	}
-	log.Printf("temp: %.2f°C (%.2f°F)\n", temp, temp*1.8+32)
+	defer pin.Close()
+
+	// turn on our LED
+	pin.Write(1)
+
+	// ...
 }
 ```
 
