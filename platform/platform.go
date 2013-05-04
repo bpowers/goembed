@@ -2,12 +2,17 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
+// Package platform provides standard interfaces and creation
+// functions for common embedded buses and IO methods.
 package platform
 
 // SPIPair represents the connection between an SPI bus master and a
 // specific slave.  Different slaves connected to the same SPI master
 // have distinct SPIPairs.
 type SPIPair interface {
+	// Transaction sends the data in the write buffer to the
+	// slave, and fills the read buffer with len(read) bytes of
+	// data.  Either buffer is allowed to be nil, but not both.
 	Transaction(write, read []byte) error
 	Close() error
 }
