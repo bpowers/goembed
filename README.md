@@ -42,9 +42,9 @@ package main
 
 import (
 	_ "github.com/bpowers/goembed/arch/raspberrypi"
-	"github.com/bpowers/goembed/device"
 	"github.com/bpowers/goembed/platform"
 	"log"
+	"time"
 )
 
 const LEDPin = 22
@@ -56,7 +56,7 @@ func main() {
 	}
 	defer pin.Close()
 
-	desired = 0
+	var desired byte = 0
 	timer := time.Tick(500 * time.Millisecond)
 	for {
 		<-timer
