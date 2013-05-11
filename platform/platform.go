@@ -24,6 +24,11 @@ type SPIPair interface {
 var NewSPIPair func(bus, slave int) (SPIPair, error)
 
 type GPIODir int // the direction (input or output) of the IO pin
+type GPIOEdge int // the direction (input or output) of the IO pin
+type GPIOSignal struct {
+	GPIO GPIO
+	Edge GPIOEdge
+}
 
 func (d GPIODir) String() string {
 	switch d {
@@ -43,13 +48,29 @@ const (
 	GPBidi GPIODir = GPInput | GPOutput
 )
 
+const (
+	EdgeRising GPIOEdge = 1 << 0
+	EdgeFalling GPIOEdge = 1 << 1
+	EdgeBoth GPIOEdge = EdgeRising | EdgeFalling
+)
+
 // GPIO represents an individual pin opened for either input or output
 type GPIO interface {
 	Read() (byte, error) // only the lowest bit (0x01) will possibly be set
 	Write(b byte) error // the input, b, will be bitwise-and'ed with 0x01
 	Dir() GPIODir
+	Notify(chan GPIOSignal, GPIOEdge) error
+	Stop(chan GPIOSignal)
 	Close() error
 }
 
 // OpenGPIO is the platform-specific way to gain access to a GPIO pin.
 var OpenGPIO func(pin int, dir GPIODir) (GPIO, error)
+
+// WaitForever never returns.  it consists of a single `select{}`
+// statement; it serves as a documented way of saying "I want to block
+// forever", without risking someone thinking that you simply forgot
+// to finish your `select{}` statement.
+func WaitForever() {
+	select{}
+}
