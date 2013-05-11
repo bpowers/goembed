@@ -38,9 +38,9 @@ func (d GPIODir) String() string {
 }
 
 const (
-	GPInput GPIODir = iota
-	GPOutput GPIODir = iota
-	GPBidi GPIODir = iota
+	GPInput GPIODir = 1 << 0
+	GPOutput GPIODir = 1 << 1
+	GPBidi GPIODir = GPInput | GPOutput
 )
 
 // GPIO represents an individual pin opened for either input or output
